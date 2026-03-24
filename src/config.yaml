@@ -1,0 +1,39 @@
+MLL:
+  pca_info_threshold: 0.95
+  k_folds_cv: 10
+  scalers:
+    - MinMaxScaler
+    - MinMaxScaler2
+    - StandardScaler
+  svm_grid:
+    C: [0.001, 0.01, 0.1, 1, 5, 10, 15, 100, 1000, 10000, 100000]
+    gamma: [1.0e-6, 3.162e-6, 1.0e-5, 3.162e-5, 1.0e-4, 3.162e-4, 1.0e-3, 3.162e-3, 0.01]
+    kernel: [rbf]
+  knn_grid:
+    n_neighbors: [3, 5, 7, 9, 11, 13, 15]
+  kpca_standalone_grid:
+    kpca__n_components: [10, 20, 30, 40]
+    kpca__gamma: [0.0001, 0.001, 0.01, 0.1]
+    kpca__kernel: [rbf]
+  kpca_best_n_components: 30
+  kpca_best_gamma: 0.0001
+
+CIFAR10:
+  sample_size: 20000
+  pca_info_threshold: 0.90
+  k_folds_cv: 3
+  scalers:
+    - MinMaxScaler
+    - MinMaxScaler2
+    - StandardScaler
+  svm_grid:
+    C: [1, 5, 10, 15, 100]
+    gamma: [3.162e-5, 1.0e-4, 3.162e-4, 1.0e-3, 3.162e-3, 0.01]
+    kernel: [rbf]
+  knn_grid:
+    n_neighbors: [3, 5, 7, 9, 11, 13, 15]
+  kpca_standalone_grid:
+    kpca__n_components: [50, 100, 200]
+    kpca__kernel: [linear]
+  kpca_best_n_components: 200
+  kpca_best_gamma: 0.01
