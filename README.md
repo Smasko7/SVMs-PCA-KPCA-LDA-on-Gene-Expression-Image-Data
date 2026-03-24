@@ -1,174 +1,269 @@
-# SVMs, PCA, KPCA + LDA — Classification Experiments
+<p align="center">
+  <h1 align="center">SVMs, PCA, KPCA + LDA</h1>
+  <p align="center">
+    <strong>Classification Experiments on Gene Expression &amp; Image Data</strong>
+  </p>
+  <p align="center">
+    <code>SVM</code>&ensp;·&ensp;<code>KNN</code>&ensp;·&ensp;<code>NCC</code>&ensp;·&ensp;<code>PCA</code>&ensp;·&ensp;<code>Kernel PCA</code>&ensp;·&ensp;<code>LDA</code>
+  </p>
+</p>
 
-This project benchmarks classical machine learning classifiers combined with dimensionality reduction techniques on two datasets: **MLL** (gene expression, 3-class leukemia) and **CIFAR-10** (10-class image recognition).
+<br>
+
+> Benchmarking classical ML classifiers combined with dimensionality reduction on two fundamentally different datasets: **MLL** (3-class leukemia gene expression) and **CIFAR-10** (10-class image recognition).
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
 ```
 src/
-├── Utils.py                   # Shared data loading, preprocessing, and helper functions
+│
+├── Utils.py                   # Shared data loading, preprocessing & helpers
 ├── config.yaml                # Centralised hyperparameters for both datasets
-├── SVM_MLL.py                 # SVM with grid search on the MLL dataset
+│
+├── SVM_MLL.py                 # SVM with grid search on MLL
 ├── SVM_CIFAR.py               # SVM with grid search on CIFAR-10
-├── Baseline_models.py         # KNN and NCC baselines on both datasets
+├── Baseline_models.py         # KNN & NCC baselines on both datasets
 ├── kpca_lda_standalone.py     # KPCA → LDA pipeline (grid search, used as classifier)
 ├── kpca_lda_classifier.py     # KPCA → LDA → KNN or SVM pipeline
+│
 ├── MLL.tab                    # MLL gene expression dataset
 └── requirements.txt           # Python dependencies
 
-Experiments Results/           # Pre-run output files (CSVs, plots, saved models)
+Experiments Results/            # Pre-run output files (CSVs, plots, saved models)
 ```
 
 ---
 
-## Datasets
+## 🗂️ Datasets
 
-| Dataset | Type | Classes | Samples | Notes |
-|---|---|---|---|---|
-| **MLL** | Gene expression (tabular) | 3 — ALL, AML, MLL | 43 train / 29 test | 12,533 features; loaded from `MLL.tab` |
-| **CIFAR-10** | RGB images (32×32) | 10 — airplane, automobile, … | 50,000 train / 10,000 test | Downloaded automatically via Keras on first run |
+<table>
+  <tr>
+    <th></th>
+    <th>MLL</th>
+    <th>CIFAR-10</th>
+  </tr>
+  <tr>
+    <td><strong>Type</strong></td>
+    <td>Gene expression (tabular)</td>
+    <td>RGB images (32 × 32)</td>
+  </tr>
+  <tr>
+    <td><strong>Classes</strong></td>
+    <td>3 — ALL · AML · MLL</td>
+    <td>10 — airplane, automobile, …</td>
+  </tr>
+  <tr>
+    <td><strong>Features</strong></td>
+    <td>12 533</td>
+    <td>3 072 (32 × 32 × 3)</td>
+  </tr>
+  <tr>
+    <td><strong>Samples</strong></td>
+    <td>43 train / 29 test</td>
+    <td>50 000 train / 10 000 test</td>
+  </tr>
+  <tr>
+    <td><strong>Source</strong></td>
+    <td><code>MLL.tab</code> (bundled)</td>
+    <td>Auto-downloaded via Keras</td>
+  </tr>
+</table>
 
 ---
 
-## Methods
+## ⚙️ Methods
 
 ### Dimensionality Reduction
 
-- **PCA** — retains a configurable percentage of variance (default 90–95%).
-- **KPCA** — kernel PCA with RBF or linear kernel; number of components tuned via grid search.
-- **LDA** — Linear Discriminant Analysis, applied after KPCA to maximise class separability.
+| Technique | Description |
+|:----------|:------------|
+| **PCA** | Retains a configurable percentage of variance (default 90–95%) |
+| **KPCA** | Kernel PCA with RBF or linear kernel; components tuned via grid search |
+| **LDA** | Linear Discriminant Analysis applied after KPCA to maximise class separability |
 
 ### Classifiers
 
 | Script | Classifier | Reduction |
-|---|---|---|
+|:-------|:-----------|:----------|
 | `SVM_MLL.py` | SVM (RBF kernel) | PCA |
 | `SVM_CIFAR.py` | SVM (RBF kernel) | PCA |
-| `Baseline_models.py` | KNN, NCC | PCA |
-| `kpca_lda_standalone.py` | LDA itself (max-likelihood decision) | KPCA + LDA |
-| `kpca_lda_classifier.py` | KNN or SVM on top of LDA space | KPCA + LDA |
+| `Baseline_models.py` | KNN · NCC | PCA |
+| `kpca_lda_standalone.py` | LDA (max-likelihood decision) | KPCA + LDA |
+| `kpca_lda_classifier.py` | KNN or SVM | KPCA + LDA |
 
 ---
 
-## Experimental Findings
+## 📊 Experimental Findings
 
-### CIFAR-10 (Image Classification)
+### CIFAR-10 — Image Classification
 
-CIFAR-10 is characterised by high noise and inherent non-linearity. The key observations are summarised below.
+<table>
+<tr><td>
 
-**Non-linear separability and kernel selection.** The data is not linearly separable. Linear-kernel SVMs struggled significantly, with training times reaching up to 30 hours for large penalty values of C without converging. Non-linear kernels (RBF and Polynomial) yielded vastly superior performance, and the **RBF kernel emerged as the best overall model** for this dataset.
+#### 🔑 Key Takeaway
 
-**The role of regularisation (soft margin).** For linear SVMs, very small C values produced better accuracy and drastically faster training. A small C acts as a regulariser, creating a soft margin that tolerates misclassifications and prevents overfitting on noisy image data, thereby improving generalisation.
+> The **RBF-kernel SVM** was the best overall model. Simpler **PCA + SVM (RBF)** outperformed the more complex KPCA + LDA pipelines on this dataset.
 
-**Failure of baseline models.** KNN and NCC performed the worst by a significant margin. NCC assumes that each class clusters around a single centroid, but the "mean image" of a CIFAR-10 class is essentially noise. KNN relies on Euclidean distance between raw pixel values, which is a poor metric for capturing the complex features needed to distinguish visually similar classes (e.g. "cat" vs "dog").
+</td></tr>
+</table>
 
-**Impact of scaling methods.** The choice of scaler (MinMax [0,1], MinMax [−1,1], or Z-score standardisation) had a negligible impact on accuracy. However, `StandardScaler` (Z-score) required slightly more training time, likely because unbounded feature values slow algorithmic convergence.
+**Non-linear separability & kernel selection.**
+CIFAR-10 data is not linearly separable. Linear-kernel SVMs struggled severely — training times reached up to 30 hours for large C values without converging. Non-linear kernels (RBF, Polynomial) performed vastly better, with the **RBF kernel emerging as the optimal choice**.
 
-**Limitations of the KPCA + LDA pipeline.** The simpler PCA + SVM (RBF) pipeline outperformed the more complex KPCA + LDA + Classifier pipelines. LDA assumes normally distributed classes with similar variances — conditions that CIFAR-10 does not meet due to high intra-class variance and class means that are too close together. Hardware limitations also prevented an exhaustive hyperparameter search for the KPCA models.
+**Regularisation matters (soft margin).**
+For linear SVMs, very small C values produced better accuracy *and* drastically faster training. A small C creates a soft margin that tolerates misclassifications, preventing overfitting on noisy image data and improving generalisation.
 
-### MLL (Gene Expression)
+**Baseline models failed.**
+KNN and NCC performed the worst by a significant margin. NCC assumes each class clusters around a single centroid — but the "mean image" of a CIFAR-10 class is essentially noise. KNN's reliance on Euclidean pixel distance is too crude to capture the complex features needed to distinguish visually similar classes (e.g. *cat* vs *dog*).
 
-The MLL dataset presents the opposite challenge: extremely high dimensionality (12,533 features) but very few samples (72 total across 3 classes).
+**Scaling had negligible impact.**
+MinMax [0, 1], MinMax [−1, 1], and Z-score standardisation all produced very similar accuracy. `StandardScaler` required slightly more training time, likely because unbounded values slow convergence.
 
-**Inherent linear separability.** With thousands of dimensions and very few data points, the MLL data is almost perfectly linearly separable. Models relying exclusively on linear components (Linear SVMs, KPCA with a linear kernel) achieved the highest performance.
-
-**Crucial need for strong regularisation.** The best results were consistently obtained with exceptionally small C values. Because the dataset is so small, large C values lead to severe overfitting and poor generalisation.
-
-**Trade-offs of using PCA.** Retaining 95% of variance reduced dimensionality from 12,533 to roughly 35 features. This caused a slight drop in accuracy — some class discriminability is inevitably lost — but decreased training time by an order of magnitude.
-
-**High efficacy of baseline models.** In stark contrast to CIFAR-10, KNN and NCC (with PCA) achieved over 86% accuracy on MLL, indicating that the three leukemia types form highly distinct, well-separated clusters in the gene-expression feature space.
-
-**Exceptional performance of KPCA + LDA.** The KPCA + LDA pipeline proved to be the best feature-extraction method for this dataset, yielding the **highest overall accuracy**. Linear variants of these models projected the 12,533-dimensional data into a 2-dimensional space where the classes were almost flawlessly separated, allowing a simple linear classifier to distinguish them easily.
+**KPCA + LDA underperformed.**
+LDA assumes normally distributed classes with similar variances — conditions CIFAR-10 violates due to high intra-class variance and overlapping class means. Hardware constraints also prevented an exhaustive hyperparameter search for the KPCA models.
 
 ---
 
-## Installation
+### MLL — Gene Expression
+
+<table>
+<tr><td>
+
+#### 🔑 Key Takeaway
+
+> **KPCA + LDA** achieved the highest overall accuracy, projecting 12 533 dimensions into just 2D with near-perfect class separation. Linear models dominated.
+
+</td></tr>
+</table>
+
+**Inherent linear separability.**
+With thousands of dimensions but very few samples, MLL data is almost perfectly linearly separable. Linear SVMs and KPCA with a linear kernel achieved the best results.
+
+**Strong regularisation is crucial.**
+The best performances consistently used exceptionally small C values. The tiny dataset makes large C values cause severe overfitting and poor generalisation.
+
+**PCA trade-offs.**
+Retaining 95% of variance reduced dimensionality from 12 533 → ~35 features. This caused a slight accuracy drop but cut training time by an **order of magnitude**.
+
+**Baseline models excelled.**
+Unlike on CIFAR-10, KNN and NCC (with PCA) achieved **> 86% accuracy**, confirming that the three leukemia types form highly distinct, well-separated clusters in gene-expression space.
+
+**KPCA + LDA was exceptional.**
+Linear KPCA + LDA projected the high-dimensional data into a 2D space where the classes were almost flawlessly separated — a simple linear classifier could easily distinguish them.
+
+---
+
+### Side-by-Side Comparison
+
+| Aspect | CIFAR-10 | MLL |
+|:-------|:---------|:----|
+| **Best pipeline** | PCA + SVM (RBF) | KPCA + LDA |
+| **Separability** | Non-linear | Nearly linear |
+| **Regularisation** | Small C preferred | Small C crucial |
+| **Baseline models** | Failed | Excelled (> 86%) |
+| **KPCA + LDA** | Underperformed | Best overall |
+| **Scaling impact** | Negligible | — |
+
+---
+
+## 🚀 Getting Started
+
+### Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> **Note:** TensorFlow/Keras is required only to download CIFAR-10. If you are only using the MLL dataset you can skip it.
+> [!NOTE]
+> TensorFlow / Keras is required only to download CIFAR-10. If you are only using the MLL dataset you can skip it.
 
----
+### Running the Experiments
 
-## Running the Experiments
-
-All scripts must be run from inside the `src/` directory — `MLL.tab` is loaded via a relative path and the scripts will fail if invoked from elsewhere:
+All scripts must be run from inside `src/` — `MLL.tab` is loaded via a relative path:
 
 ```bash
 cd src/
 ```
 
-### SVM on MLL
+<details>
+<summary><strong>SVM on MLL</strong></summary>
 
 ```bash
 python SVM_MLL.py
 ```
 
-Runs a grid search over `C` and `gamma` for an RBF SVM across three scalers (MinMaxScaler, MinMaxScaler [−1,1], StandardScaler) with PCA preprocessing.
+Runs a grid search over `C` and `gamma` for an RBF SVM across three scalers (MinMaxScaler, MinMaxScaler [−1, 1], StandardScaler) with PCA preprocessing.
+</details>
 
-### SVM on CIFAR-10
+<details>
+<summary><strong>SVM on CIFAR-10</strong></summary>
 
 ```bash
 python SVM_CIFAR.py
 ```
 
-Same pipeline as above, but on a configurable subsample of CIFAR-10 (default 20,000 training images).
+Same pipeline as above, but on a configurable subsample of CIFAR-10 (default 20 000 training images).
+</details>
 
-### KNN and NCC baselines
+<details>
+<summary><strong>KNN & NCC baselines</strong></summary>
 
 ```bash
 python Baseline_models.py
 ```
 
 Runs a KNN grid search (over `k`) and a Nearest Centroid classifier. Switch between datasets by changing `dataset_name` at the top of `main()`.
+</details>
 
-### KPCA + LDA standalone
+<details>
+<summary><strong>KPCA + LDA standalone</strong></summary>
 
 ```bash
 python kpca_lda_standalone.py
 ```
 
-Grid searches KPCA hyperparameters (number of components, kernel, gamma) and uses the resulting LDA projection directly for classification.
+Grid searches KPCA hyperparameters (components, kernel, gamma) and uses the resulting LDA projection directly for classification.
+</details>
 
-### KPCA + LDA + downstream classifier
+<details>
+<summary><strong>KPCA + LDA + downstream classifier</strong></summary>
 
 ```bash
 python kpca_lda_classifier.py
 ```
 
 Fits KPCA → LDA → KNN or SVM in a single pipeline. Select the classifier by setting `model_name` to `"KPCA_LDA_KNN"` or `"KPCA_LDA_SVM"` at the top of `main()`.
+</details>
 
 ---
 
-## Configuration
+## 🛠️ Configuration
 
-All experiment hyperparameters are centralised in **`config.yaml`** under two top-level keys — `MLL` and `CIFAR10`. This file is read at runtime by `Utils.load_config(dataset_name)` and is the single source of truth for grid search bounds, PCA thresholds, CV folds, sample sizes, and KPCA settings.
+All hyperparameters live in **`config.yaml`** under two top-level keys — `MLL` and `CIFAR10`. Read at runtime by `Utils.load_config(dataset_name)`, it is the single source of truth for grid search bounds, PCA thresholds, CV folds, sample sizes, and KPCA settings.
 
-Each script's `main()` still exposes a few runtime flags:
+Each script's `main()` also exposes a few runtime flags:
 
 | Flag | Description |
-|---|---|
+|:-----|:------------|
 | `dataset_name` | `'MLL'` or `'CIFAR-10'` |
-| `PCA_enable` | Toggle PCA on/off |
+| `PCA_enable` | Toggle PCA on / off |
 | `Multiple_cores_enable` | Use all CPU cores for grid search |
-| `GrayScale` | Convert CIFAR-10 to grayscale before training (CIFAR scripts only) |
+| `GrayScale` | Convert CIFAR-10 to grayscale (CIFAR scripts only) |
 | `model_name` | `"KPCA_LDA_KNN"` or `"KPCA_LDA_SVM"` (KPCA classifier script only) |
 
 ---
 
-## Output Files
+## 📁 Output Files
 
-Each experiment run creates a subdirectory next to the script (e.g. `MLL_rbf_MinMaxScaler_PCA_output_files/`) containing:
+Each run creates a subdirectory next to the script (e.g. `MLL_rbf_MinMaxScaler_PCA_output_files/`):
 
 | File | Contents |
-|---|---|
+|:-----|:---------|
 | `results_*.csv` | Full grid search CV results, ranked by score |
-| `best_est_results_*.csv` | Best model's parameters and evaluation metrics |
+| `best_est_results_*.csv` | Best model's parameters & evaluation metrics |
 | `conf_matrix_*.png` | Confusion matrix heatmap on the test set |
-| `contour_grid_*.png` | C vs gamma accuracy contour (SVM with RBF/poly kernel) |
+| `contour_grid_*.png` | C vs γ accuracy contour (SVM with RBF / poly kernel) |
 | `*_best_model.pkl` | Saved best model (joblib) |
 | `classification_example_*.png` | Example misclassified image (CIFAR-10 only) |
