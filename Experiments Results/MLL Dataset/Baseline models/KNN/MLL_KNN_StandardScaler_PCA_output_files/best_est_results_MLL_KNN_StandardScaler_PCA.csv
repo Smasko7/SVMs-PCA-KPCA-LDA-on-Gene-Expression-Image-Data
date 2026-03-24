@@ -1,0 +1,11 @@
+scaler,best_params,pca_components,train_accuracy,test_accuracy,cv_mean_score,classification_report
+StandardScaler,3,35,0.8604651162790697,0.8275862068965517,0.75,"              precision    recall  f1-score   support
+
+           0     0.9000    0.9000    0.9000        10
+           1     1.0000    0.7273    0.8421        11
+           2     0.6364    0.8750    0.7368         8
+
+    accuracy                         0.8276        29
+   macro avg     0.8455    0.8341    0.8263        29
+weighted avg     0.8652    0.8276    0.8330        29
+"

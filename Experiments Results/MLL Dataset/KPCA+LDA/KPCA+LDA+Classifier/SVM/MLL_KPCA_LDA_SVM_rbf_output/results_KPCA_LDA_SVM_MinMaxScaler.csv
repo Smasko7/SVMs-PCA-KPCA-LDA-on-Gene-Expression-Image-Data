@@ -1,0 +1,11 @@
+Model,Scaler,Train_Accuracy,Test_Accuracy,Training_Time,Report,Best_Params
+KPCA_LDA_SVM,MinMaxScaler,1.0,0.9310344827586207,0.5546236038208008,"              precision    recall  f1-score   support
+
+           0     1.0000    0.8000    0.8889        10
+           1     1.0000    1.0000    1.0000        11
+           2     0.8000    1.0000    0.8889         8
+
+    accuracy                         0.9310        29
+   macro avg     0.9333    0.9333    0.9259        29
+weighted avg     0.9448    0.9310    0.9310        29
+",Fixed

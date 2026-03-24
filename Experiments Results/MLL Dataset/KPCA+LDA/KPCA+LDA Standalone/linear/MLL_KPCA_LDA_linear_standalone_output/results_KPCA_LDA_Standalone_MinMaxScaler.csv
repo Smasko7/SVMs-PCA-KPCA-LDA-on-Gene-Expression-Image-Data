@@ -1,0 +1,11 @@
+Model,Scaler,Train_Accuracy,Test_Accuracy,Training_Time,Report,Best_Params
+KPCA_LDA_Standalone,MinMaxScaler,1.0,0.9655172413793104,20.31490731239319,"              precision    recall  f1-score   support
+
+           0     1.0000    1.0000    1.0000        10
+           1     1.0000    0.9091    0.9524        11
+           2     0.8889    1.0000    0.9412         8
+
+    accuracy                         0.9655        29
+   macro avg     0.9630    0.9697    0.9645        29
+weighted avg     0.9693    0.9655    0.9657        29
+","{'kpca__kernel': 'linear', 'kpca__n_components': 30}"
